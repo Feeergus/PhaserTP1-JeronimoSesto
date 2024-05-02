@@ -1,20 +1,7 @@
-# Phaser 3 Template
+# Informacion de mi Juego
 
-Plantilla para iniciar nuevos proyectos con PHASER 3.
+-> Un juego donde el jugador recorre una mazmorra laberinto, donde solo tiene 3 posibles acciones, ATACAR (para poder dañar enemigos o interactuar con objetos), DEFENSA (que sirve para subir el escudo y proteger al jugador de un poco del daño) y MAGIA (dependiendo la forma en la que juega el jugador, los hechizos seran mas fuertes o no).
 
-Contiene configuración inicial y buenas prácticas de estructuras de carpetas.
+-> La idea es que sea un juego infinito, asi que no subira de nivel el jugador sino su equipo, pero el equipo puede romperse, lo que hace que deba ir cmbiando de equipo.
 
-## Cuando lo utilices
-
-No te olvides de customizarlo a tus necesidades.
-
-1. Cuando lo utilices como Template desde el botón de GitHub, no olvides cambiar el nombre del repositorio acorde a tu proyecto en el wizard de creación de repositorios.
-1. Luego de clonar el repositorio en tu maquina local. Deberias:
-   1. Actualizar la version de Phaser a la version más actualizada en el archivo `index.html`. Ver la web: https://phaser.io/download/stable
-   1. También, dentro del `index.html` modificar el titulo de la pagina. Por ejemplo: `<title>My Game</title>`
-   1. Ejecutar el proyecto de forma local para ver que este funcionando correctamente. Si no es asi, deberias lograr que corra.
-   1. Una vez que este funcionando correctamente, hacer un commit con el mensaje "Update Phaser version and title".
-   1. Borrar los archivos dentro de la carpeta `/assets` y empezar a desarrollar.
-1. Por ultimo, una buena practica es: modificar este README.md, poner información relevante de tu juego, imagenes, videos, etc, y luego hacer un commit con el mensaje "Customize README.md".
-
-hola
+->
