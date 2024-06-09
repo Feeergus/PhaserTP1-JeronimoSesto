@@ -1,22 +1,27 @@
 import Preloader from '../scenes/Preload.js';
-import Game from '../scenes/Game.js';
+import DungeonScene from '../scenes/Game.js';
 
 // Create a new Phaser game instance
-export default new Phaser.Game({  type: Phaser.AUTO,
-  width: 1000,
-  height: 650,
+
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  backgroundColor: "#000",
+  parent: "game-container",
+  pixelArt: true,
+  scene: DungeonScene,
   physics: {
     default: "arcade",
     arcade: {
-      gravity: { y: 0 },
-      debug: true,
+      gravity: { y: 0 }
     },
   },
-  // List of scenes to load
-  // Only the first scene will be shown
-  // Remember to import the scene before adding it to the list
-  scene: [Preloader, Game],
+
+  scene: [Preloader, DungeonScene],
   scale: {
     zoom: 2
   }
-});
+};
+
+const game = new Phaser.Game(config);
