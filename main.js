@@ -1,5 +1,5 @@
 import Preloader from '../scenes/Preload.js';
-import DungeonScene from '../scenes/Game.js';
+import DungeonScene from '../scenes/DungeonScene.js';
 
 // Create a new Phaser game instance
 
