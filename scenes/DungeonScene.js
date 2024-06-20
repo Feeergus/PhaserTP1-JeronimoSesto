@@ -1,6 +1,11 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
+//import Phaser from "phaser"
 
 export default class Game extends Phaser.Scene {
+
+  //private cursors !: Phaser.Types.Input.Keyboard.CursorKeys
+  //private faune !: Phaser.Physics.Arcade.Sprite
+
   constructor() {
     // key of the scene
     // the key will be used to start the scene by other scenes
@@ -12,6 +17,8 @@ export default class Game extends Phaser.Scene {
     this.load.image("tiles", "tiles/Dungeon_tiles.png");
 
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
+
+    this.cursors = this.input.keyboard.createCursorKeys();
   }
   
   create() {
@@ -35,7 +42,8 @@ export default class Game extends Phaser.Scene {
     faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     });
 
-    const faune = this.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
+    this.faune = this.physics.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
+    
 
     this.anims.create({
       key: "faune-idle-down",
@@ -73,7 +81,38 @@ export default class Game extends Phaser.Scene {
       frameRate: 15
     });
     
-    faune.anims.play("faune-idle-down");
+    this.faune.anims.play("faune-idle-down");
+  }
+
+  update(){
+    const speed = 100
+    if(!this.cursors || !this.faune){
+      return
+    }
+    if (this.cursors.left?.isDown) {
+      this.faune.setVelocity(-speed, 0);
+      this.faune.anims.play("faune-run-side", true);
+      this.faune.scaleX = -1;
+    } else if (this.cursors.right?.isDown) {
+      this.faune.setVelocity(speed, 0);
+      this.faune.anims.play("faune-run-side", true);
+      this.faune.scaleX = 1;
+    } else if (this.cursors.up?.isDown) {
+      this.faune.setVelocity(0, -speed);
+      this.faune.anims.play("faune-run-up", true);
+    } else if (this.cursors.down?.isDown) {
+      this.faune.setVelocity(0, speed);
+      this.faune.anims.play("faune-run-down", true);
+    } else {
+      this.faune.setVelocity(0, 0);
+      const currentDirection = this.faune.anims.currentAnim?.key;
+      if (currentDirection) {
+        const direction = currentDirection.split("-")[2];
+        this.faune.anims.play(`faune-idle-${direction}`, true);
+      }
+    }
+
+
   }
 
   
