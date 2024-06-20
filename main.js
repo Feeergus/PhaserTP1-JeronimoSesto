@@ -20,7 +20,7 @@ const config = {
 
   scene: [Preloader, DungeonScene],
   scale: {
-    zoom: 2
+    zoom: 1
   }
 };
 
