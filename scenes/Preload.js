@@ -7,8 +7,8 @@ export default class Preloader extends Phaser.Scene{
 
     preload()
     {
-        //this.load.image('tiles', 'tiles/Dungeon_tiles.png');
-        //this.load.tilemapTiledJSON('dungeon', 'tiles/Mazmorra2.json');
+        //this.load.tilemapTiledJSON("Mazmorra", "tiles/Mazmorra2.json");
+        //this.load.image("tiles", "tiles/Dungeon_tiles.png");
     }
    
     create()
