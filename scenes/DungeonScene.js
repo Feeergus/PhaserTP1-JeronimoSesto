@@ -43,6 +43,7 @@ export default class Game extends Phaser.Scene {
     });
 
     this.faune = this.physics.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
+    this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     
 
     this.anims.create({
@@ -84,6 +85,8 @@ export default class Game extends Phaser.Scene {
     this.faune.anims.play("faune-idle-down");
 
     this.physics.add.collider(this.faune, LayerArriba);
+
+    this.cameras.main.startFollow(this.faune, true);
   }
 
   update(){
@@ -95,12 +98,12 @@ export default class Game extends Phaser.Scene {
       this.faune.setVelocity(-speed, 0);
       this.faune.anims.play("faune-run-side", true);
       this.faune.scaleX = -1;
-      this.faune.body.offset.x = 32;
+      this.faune.body.offset.x = 24;
     } else if (this.cursors.right?.isDown) {
       this.faune.setVelocity(speed, 0);
       this.faune.anims.play("faune-run-side", true);
       this.faune.scaleX = 1;
-      this.faune.body.offset.x = 0;
+      this.faune.body.offset.x = 8;
     } else if (this.cursors.up?.isDown) {
       this.faune.setVelocity(0, -speed);
       this.faune.anims.play("faune-run-up", true);
