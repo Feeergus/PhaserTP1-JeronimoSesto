@@ -82,6 +82,8 @@ export default class Game extends Phaser.Scene {
     });
     
     this.faune.anims.play("faune-idle-down");
+
+    this.physics.add.collider(this.faune, LayerArriba);
   }
 
   update(){
@@ -93,10 +95,12 @@ export default class Game extends Phaser.Scene {
       this.faune.setVelocity(-speed, 0);
       this.faune.anims.play("faune-run-side", true);
       this.faune.scaleX = -1;
+      this.faune.body.offset.x = 32;
     } else if (this.cursors.right?.isDown) {
       this.faune.setVelocity(speed, 0);
       this.faune.anims.play("faune-run-side", true);
       this.faune.scaleX = 1;
+      this.faune.body.offset.x = 0;
     } else if (this.cursors.up?.isDown) {
       this.faune.setVelocity(0, -speed);
       this.faune.anims.play("faune-run-up", true);
