@@ -1,6 +1,7 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
 //import Phaser from "phaser"
 
+//import lizard from '../enemies/lizard.js'
 export default class Game extends Phaser.Scene {
 
   //private cursors !: Phaser.Types.Input.Keyboard.CursorKeys
@@ -17,6 +18,7 @@ export default class Game extends Phaser.Scene {
     this.load.image("tiles", "tiles/Dungeon_tiles.png");
 
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
+    this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
 
     this.cursors = this.input.keyboard.createCursorKeys();
   }
@@ -87,6 +89,32 @@ export default class Game extends Phaser.Scene {
     this.physics.add.collider(this.faune, LayerArriba);
 
     this.cameras.main.startFollow(this.faune, true);
+
+    this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
+    this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
+
+    this.anims.create({
+      key: "lizard-idle",
+      frames: this.anims.generateFrameNames("lizard", { start: 0, end: 3, prefix: "lizard_m_idle_anim_f", suffix: ".png"}),
+      repeat: -1,
+      framerate: 10
+    });
+
+    this.anims.create({
+      key: "lizard-run",
+      frames: this.anims.generateFrameNames("lizard", { start: 0, end: 3, prefix: "lizard_m_run_anim_f", suffix: ".png"}),
+      repeat: -1,
+      framerate: 10
+    });
+
+    this.anims.create({
+      key: "lizard-hit",
+      frames: [{ key: "lizard", frame: "lizard_m_hit_anim_f0.png"}]
+    });
+
+   
+    this.lizard.anims.play("lizard-idle");
+
   }
 
   update(){
