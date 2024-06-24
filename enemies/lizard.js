@@ -1,14 +1,17 @@
-import Phaser from 'phaser'
 
-enum Direction
-{
+let UP;
+let DOWN;
+let LEFT;
+let RIGHT;
+
+let Direction = {
 	UP,
 	DOWN,
 	LEFT,
 	RIGHT
-}
+};
 
-const randomDirection = (exclude: Direction) => {
+const randomDirection = (exclude = Direction) => {
 	let newDirection = Phaser.Math.Between(0, 3)
 	while (newDirection === exclude)
 	{
@@ -16,38 +19,29 @@ const randomDirection = (exclude: Direction) => {
 	}
 
 	return newDirection
-}
+};
 
 export default class Lizard extends Phaser.Physics.Arcade.Sprite
 {
-	private direction = Direction.RIGHT
-	private moveEvent: Phaser.Time.TimerEvent
+	direction = Direction.RIGHT
+	moveEvent = Phaser.Time.TimerEvent
 
-	constructor(scene: Phaser.Scene, x: number, y: number, texture: string, frame?: string | number)
-	{
-		super(scene, x, y, texture, frame)
+	moveEvent = scene.time.addEvent({
+		delay: 2000,
+		callback: () => {
+			this.direction = randomDirection(this.direction)
+		},
+		loop: true
+	})
 
-		this.anims.play('lizard-idle')
-
-		scene.physics.world.on(Phaser.Physics.Arcade.Events.TILE_COLLIDE, this.handleTileCollision, this)
-
-		this.moveEvent = scene.time.addEvent({
-			delay: 2000,
-			callback: () => {
-				this.direction = randomDirection(this.direction)
-			},
-			loop: true
-		})
-	}
-
-	destroy(fromScene?: boolean)
+	destroy(fromScene = boolean)
 	{
 		this.moveEvent.destroy()
 
 		super.destroy(fromScene)
 	}
 
-	private handleTileCollision(go: Phaser.GameObjects.GameObject, tile: Phaser.Tilemaps.Tile)
+	handleTileCollision(go = Phaser.GameObjects.GameObject, tile= Phaser.Tilemaps.Tile)
 	{
 		if (go !== this)
 		{
@@ -57,7 +51,7 @@ export default class Lizard extends Phaser.Physics.Arcade.Sprite
 		this.direction = randomDirection(this.direction)
 	}
 
-	preUpdate(t: number, dt: number)
+	preUpdate(t= number, dt= number)
 	{
 		super.preUpdate(t, dt)
 
@@ -82,4 +76,4 @@ export default class Lizard extends Phaser.Physics.Arcade.Sprite
 				break
 		}
 	}
-}
+};

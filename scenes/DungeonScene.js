@@ -1,7 +1,8 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
-//import Phaser from "phaser"
 
-//import lizard from '../enemies/lizard.js'
+
+import lizard from '../enemies/lizard.js'
+
 export default class Game extends Phaser.Scene {
 
   //private cursors !: Phaser.Types.Input.Keyboard.CursorKeys
@@ -14,8 +15,8 @@ export default class Game extends Phaser.Scene {
   }
 
   preload() {
-    this.load.tilemapTiledJSON("Mazmorra", "tiles/Mazmorra2.json");
-    this.load.image("tiles", "tiles/Dungeon_tiles.png");
+    this.load.tilemapTiledJSON("Mazmorra", "tiles/Mazmorra2(mejorada).json");
+    this.load.image("tiles", "tiles/Dungeon_tiles - copia.png");
 
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
@@ -43,6 +44,8 @@ export default class Game extends Phaser.Scene {
     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
     faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     });
+
+    //enemy
 
     this.faune = this.physics.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
