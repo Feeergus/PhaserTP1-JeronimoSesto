@@ -1,7 +1,6 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
 
-
-import lizard from '../enemies/lizard.js'
+import Enemy from "/scenes/Enemy.js"
 
 export default class Game extends Phaser.Scene {
 
@@ -21,10 +20,15 @@ export default class Game extends Phaser.Scene {
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
 
+    this.load.atlas("coins", "tiles/coins.png", "tiles/coins.json");
+    
     this.cursors = this.input.keyboard.createCursorKeys();
   }
+
+  
   
   create() {
+    
     const map = this.make.tilemap({ key: "Mazmorra" });
 
     // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
@@ -44,9 +48,12 @@ export default class Game extends Phaser.Scene {
     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
     faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     });
+    
 
-    //enemy
-
+    this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
+    this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
+    this.physics.add.collider(this.lizard, LayerArriba); 
+    
     this.faune = this.physics.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     
@@ -93,32 +100,16 @@ export default class Game extends Phaser.Scene {
 
     this.cameras.main.startFollow(this.faune, true);
 
-    this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
-    this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
+    
 
-    this.anims.create({
-      key: "lizard-idle",
-      frames: this.anims.generateFrameNames("lizard", { start: 0, end: 3, prefix: "lizard_m_idle_anim_f", suffix: ".png"}),
-      repeat: -1,
-      framerate: 10
-    });
+    
 
-    this.anims.create({
-      key: "lizard-run",
-      frames: this.anims.generateFrameNames("lizard", { start: 0, end: 3, prefix: "lizard_m_run_anim_f", suffix: ".png"}),
-      repeat: -1,
-      framerate: 10
-    });
-
-    this.anims.create({
-      key: "lizard-hit",
-      frames: [{ key: "lizard", frame: "lizard_m_hit_anim_f0.png"}]
-    });
-
+   //coins
    
-    this.lizard.anims.play("lizard-idle");
-
+   
   }
+
+  
 
   update(){
     const speed = 100
@@ -150,7 +141,24 @@ export default class Game extends Phaser.Scene {
       }
     }
 
-
+    function Seguimiento(){
+      this.time.addEvent({
+          delay: 1000, // Cada segundo
+          loop: true,
+          callback: () => {
+            const player = this.faune;
+            const enemy = this.lizard;
+      
+            const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
+      
+            this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
+    
+            
+            
+          },
+        });
+      }
+    
   }
 
   
