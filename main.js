@@ -5,9 +5,9 @@ import DungeonScene from '../scenes/DungeonScene.js';
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  backgroundColor: "#000",
+  width: 600,
+  height: 260,
+  backgroundColor: "00000",
   parent: "game-container",
   pixelArt: true,
   scene: DungeonScene,
@@ -21,7 +21,7 @@ const config = {
 
   scene: [Preloader, DungeonScene],
   scale: {
-    zoom: 2
+    zoom: 2.25
   }
 };
 

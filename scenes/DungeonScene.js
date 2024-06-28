@@ -46,7 +46,7 @@ export default class Game extends Phaser.Scene {
     this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     
-    this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '32px', fill: '#fff' });
+    this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '20px', fill: '#fff' });
     this.scoreText.setScrollFactor(0); 
 
     this.anims.create({
