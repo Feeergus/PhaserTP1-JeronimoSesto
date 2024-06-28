@@ -1,26 +1,19 @@
 // URL to explain PHASER scene: https://rexrainbow.github.io/phaser3-rex-notes/docs/site/scene/
 
-import Enemy from "/scenes/Enemy.js"
+//import Enemy from "/scenes/Enemy.js"
 
 export default class Game extends Phaser.Scene {
 
-  //private cursors !: Phaser.Types.Input.Keyboard.CursorKeys
-  //private faune !: Phaser.Physics.Arcade.Sprite
-
   constructor() {
-    // key of the scene
-    // the key will be used to start the scene by other scenes
     super("game");
   }
 
   preload() {
     this.load.tilemapTiledJSON("Mazmorra", "tiles/Mazmorra2(mejorada).json");
     this.load.image("tiles", "tiles/Dungeon_tiles - copia.png");
-
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
-
-    this.load.atlas("coins", "tiles/coins.png", "tiles/coins.json");
+    this.load.atlas("coins", "tiles/spritesheet.png", "tiles/spritesheet.json");
     
     this.cursors = this.input.keyboard.createCursorKeys();
   }
@@ -30,16 +23,11 @@ export default class Game extends Phaser.Scene {
   create() {
     
     const map = this.make.tilemap({ key: "Mazmorra" });
-
-    // Parameters are the name you gave the tileset in Tiled and then the key of the tileset image in
-    // Phaser's cache (i.e. the name you used in preload)
     const tiles = map.addTilesetImage("Dungeon_tiles", "tiles");
-    //const tilesetPlatform = map.addTilesetImage("platform_atlas", "tilesPlatform");
+    
 
     const LayerAbajo = map.createLayer("Piso", tiles, 0, 0);
     const LayerArriba = map.createLayer("Paredes", tiles, 0, 0);
-
-
     LayerArriba.setCollisionByProperty({ collides: true });
 
     const debugGraphics = this.add.graphics().setAlpha(0.75);
@@ -54,7 +42,7 @@ export default class Game extends Phaser.Scene {
     this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
     this.physics.add.collider(this.lizard, LayerArriba); 
     
-    this.faune = this.physics.add.sprite(128, 128, "faune", "sprites/run-down/run-down-6.png");
+    this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     
 
@@ -97,19 +85,33 @@ export default class Game extends Phaser.Scene {
     this.faune.anims.play("faune-idle-down");
 
     this.physics.add.collider(this.faune, LayerArriba);
-
     this.cameras.main.startFollow(this.faune, true);
 
-    
+    this.time.addEvent({
+      delay: 1000, // Cada segundo
+      loop: true,
+      callback: this.seguimiento,
+      callbackScope: this
+    });
 
-    
-
-   //coins
-   
+    const coins = map.getObjectLayer("elements")?.objects;
+    this.coinsGroup = this.physics.add.group();
+    coins.forEach(coin => {
+      const newCoin = this.coinsGroup.create(coin.x, coin.y, "coins", "coins");
+    })
+    this.physics.add.collider(this.faune, this.coinsGroup, this.collectCoin, null, this);
    
   }
 
+ 
   
+  seguimiento(){
+    const player = this.faune;
+    const enemy = this.lizard;
+  
+    const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
+    this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
+  }
 
   update(){
     const speed = 100
@@ -141,24 +143,13 @@ export default class Game extends Phaser.Scene {
       }
     }
 
-    function Seguimiento(){
-      this.time.addEvent({
-          delay: 1000, // Cada segundo
-          loop: true,
-          callback: () => {
-            const player = this.faune;
-            const enemy = this.lizard;
-      
-            const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
-      
-            this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
     
-            
-            
-          },
-        });
-      }
     
+  }
+
+  collectCoin(player, coin) {
+    coin.disableBody(true, true); // Desactiva el cuerpo de la moneda para que desaparezca
+    // Agrega puntos o realiza otras acciones de recolección aquí
   }
 
   
