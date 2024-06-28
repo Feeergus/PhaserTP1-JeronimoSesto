@@ -6,6 +6,7 @@ export default class Game extends Phaser.Scene {
 
   constructor() {
     super("game");
+    this.score = 0;
   }
 
   preload() {
@@ -45,6 +46,8 @@ export default class Game extends Phaser.Scene {
     this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     
+    this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '32px', fill: '#fff' });
+    this.scoreText.setScrollFactor(0); 
 
     this.anims.create({
       key: "faune-idle-down",
@@ -148,8 +151,10 @@ export default class Game extends Phaser.Scene {
   }
 
   collectCoin(player, coin) {
-    coin.disableBody(true, true); // Desactiva el cuerpo de la moneda para que desaparezca
-    // Agrega puntos o realiza otras acciones de recolección aquí
+    coin.disableBody(true, true); 
+    this.score += 10;
+
+    this.scoreText.setText(`Puntuacion: ${this.score}`);
   }
 
   
