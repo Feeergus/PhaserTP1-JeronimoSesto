@@ -12,11 +12,12 @@ export default class Game extends Phaser.Scene {
 
   preload() {
     //cargar JSON de la mazmorra, tileset de la mazmorra y atlas de personajes, enemigos y objetos
-    this.load.tilemapTiledJSON("Mazmorra", "tiles/8bits(mejor).json");
-    this.load.image("tiles", "tiles/8tileset.png");
+    this.load.tilemapTiledJSON("Mazmorra", "tiles/8bits.json");
+    this.load.image("tiles", "tiles/tileset(pruebaFinal).png");
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
     this.load.atlas("coins", "tiles/spritesheet.png", "tiles/spritesheet.json");
+    
     //cursores para el movimiento
     this.cursors = this.input.keyboard.createCursorKeys();
   }
@@ -26,7 +27,7 @@ export default class Game extends Phaser.Scene {
   create() {
     //variables que definen el tilemap(archivo JSON) y el tileset
     const map = this.make.tilemap({ key: "Mazmorra" });
-    const tiles = map.addTilesetImage("finalmente", "tiles");
+    const tiles = map.addTilesetImage("tileset(pruebaFinal)", "tiles");
     //definir personaje como player
     const player = this.faune;
     //definir layers del archivo json
@@ -35,12 +36,7 @@ export default class Game extends Phaser.Scene {
     //a traves de una propiedad booleana, generamos colision con las tiles deseadas
     LayerArriba.setCollisionByProperty({ colliders: true });
     //codigo usado solo para mostrar la caja de colisiones de las tiles
-    const debugGraphics = this.add.graphics().setAlpha(0.75);
-    LayerArriba.renderDebug(debugGraphics, {
-    tileColor: null, // Color of non-colliding tiles
-    collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
-    faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
-    });
+    
     //se define el sprite, tamaño y collisiones del enemigo
     this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
     this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
@@ -121,6 +117,11 @@ export default class Game extends Phaser.Scene {
     //se definen como array las znas para teletransporte y las de aparecer, ademas de buscar tile por tile las que tengan esas mismas propiedades
     this.teleportZones = [];
     this.appearZones = [];
+
+    const renderTexture = this.add.renderTexture(0, 0, map.widthInPixels, map.heightInPixels);
+    renderTexture.setPipeline('Light2D');
+    renderTexture.draw(map.createLayer("Piso", tiles, 0, 0));
+    renderTexture.draw(map.createLayer("Paredes", tiles, 0, 0));
 
     map.layers.forEach(layer => {
       layer.data.forEach(row => {
