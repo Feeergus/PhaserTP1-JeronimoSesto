@@ -7,48 +7,53 @@ export default class Game extends Phaser.Scene {
   constructor() {
     super("game");
     this.score = 0;
+
   }
 
   preload() {
-    this.load.tilemapTiledJSON("Mazmorra", "tiles/Mazmorra2(mejorada).json");
-    this.load.image("tiles", "tiles/Dungeon_tiles - copia.png");
+    //cargar JSON de la mazmorra, tileset de la mazmorra y atlas de personajes, enemigos y objetos
+    this.load.tilemapTiledJSON("Mazmorra", "tiles/8bits(mejor).json");
+    this.load.image("tiles", "tiles/8tileset.png");
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
     this.load.atlas("coins", "tiles/spritesheet.png", "tiles/spritesheet.json");
-    
+    //cursores para el movimiento
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
   
   
   create() {
-    
+    //variables que definen el tilemap(archivo JSON) y el tileset
     const map = this.make.tilemap({ key: "Mazmorra" });
-    const tiles = map.addTilesetImage("Dungeon_tiles", "tiles");
-    
-
+    const tiles = map.addTilesetImage("finalmente", "tiles");
+    //definir personaje como player
+    const player = this.faune;
+    //definir layers del archivo json
     const LayerAbajo = map.createLayer("Piso", tiles, 0, 0);
     const LayerArriba = map.createLayer("Paredes", tiles, 0, 0);
-    LayerArriba.setCollisionByProperty({ collides: true });
-
+    //a traves de una propiedad booleana, generamos colision con las tiles deseadas
+    LayerArriba.setCollisionByProperty({ colliders: true });
+    //codigo usado solo para mostrar la caja de colisiones de las tiles
     const debugGraphics = this.add.graphics().setAlpha(0.75);
     LayerArriba.renderDebug(debugGraphics, {
     tileColor: null, // Color of non-colliding tiles
     collidingTileColor: new Phaser.Display.Color(243, 134, 48, 255), // Color of colliding tiles
     faceColor: new Phaser.Display.Color(40, 39, 37, 255) // Color of colliding face edges
     });
-    
-
+    //se define el sprite, tamaño y collisiones del enemigo
     this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
     this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
     this.physics.add.collider(this.lizard, LayerArriba); 
-    
+    //se define el sprite y tamaño del player, ademas de su colision y que la camara lo siga
     this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
-    
+    this.physics.add.collider(this.faune, LayerArriba);
+    this.cameras.main.startFollow(this.faune, true);
+    //texto para mostrar el puntaje
     this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '20px', fill: '#fff' });
     this.scoreText.setScrollFactor(0); 
-
+    //animaciones player
     this.anims.create({
       key: "faune-idle-down",
       frames: [{ key: "faune", frame: "sprites/walk-down/walk-down-3.png"}]
@@ -86,28 +91,62 @@ export default class Game extends Phaser.Scene {
     });
     
     this.faune.anims.play("faune-idle-down");
-
-    this.physics.add.collider(this.faune, LayerArriba);
-    this.cameras.main.startFollow(this.faune, true);
-
+    //evento del enemigo siguiendo al player
     this.time.addEvent({
       delay: 1000, // Cada segundo
       loop: true,
       callback: this.seguimiento,
       callbackScope: this
     });
-
+    //definimos donde aparecen las monedas, les generamos un grupo con fisicas y las generamos en el mapa
     const coins = map.getObjectLayer("elements")?.objects;
     this.coinsGroup = this.physics.add.group();
     coins.forEach(coin => {
-      const newCoin = this.coinsGroup.create(coin.x, coin.y, "coins", "coins");
-    })
+      
+      const newCoin = this.coinsGroup.create(coin.x, coin.y, "coins", 0);
+      
+    });
+    //definimos colision entre player y las monedas, ademas de la funcion que llama al interactuar
     this.physics.add.collider(this.faune, this.coinsGroup, this.collectCoin, null, this);
-   
+    //animacion moneda
+    this.anims.create({
+      key: "money",
+      frames: this.anims.generateFrameNames("coins", { start: 0, end: 5, prefix: "pixil-frame-", suffix: ".png"}),
+      repeat: -1
+    });
+
+    this.coinsGroup.children.iterate(coin => {
+      coin.anims.play("money", true);
+    });
+    //se definen como array las znas para teletransporte y las de aparecer, ademas de buscar tile por tile las que tengan esas mismas propiedades
+    this.teleportZones = [];
+    this.appearZones = [];
+
+    map.layers.forEach(layer => {
+      layer.data.forEach(row => {
+        row.forEach(tile => {
+          if (tile?.properties?.zonaTP) {
+            this.teleportZones.push(tile);
+          }
+          if (tile?.properties?.apareceTP) {
+            this.appearZones.push(tile);
+          }
+        });
+      });
+    });
+    //se definen fisiicas entre el player y el Layer infeior, ademas de la funcion que llama
+    this.physics.add.overlap(this.faune, LayerAbajo, this.handleTeleport, null, this);
+  }
+  //esta funcion es llamada cuando el jugador tiene contacto con el layer inferior y se activa cuando el player toca una tile de zonaTP, eligiendo aleatoriamente una tile con apareceTP
+  handleTeleport(player, tile) {
+    if (tile.properties.zonaTP && this.appearZones.length > 0) {
+      const randomIndex = Phaser.Math.Between(0, this.appearZones.length - 1);
+      const targetZone = this.appearZones[randomIndex];
+      player.setPosition(targetZone.pixelX, targetZone.pixelY);
+    }
   }
 
- 
-  
+  //seguimiento del enemigo
   seguimiento(){
     const player = this.faune;
     const enemy = this.lizard;
@@ -117,6 +156,7 @@ export default class Game extends Phaser.Scene {
   }
 
   update(){
+    //movimiento del player
     const speed = 100
     if(!this.cursors || !this.faune){
       return
@@ -149,7 +189,7 @@ export default class Game extends Phaser.Scene {
     
     
   }
-
+  //recollecion de monedas
   collectCoin(player, coin) {
     coin.disableBody(true, true); 
     this.score += 10;
