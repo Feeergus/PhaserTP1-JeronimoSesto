@@ -1,5 +1,4 @@
-import Preloader from '../scenes/Preload.js';
-import DungeonScene from '../scenes/DungeonScene.js';
+import DungeonScene from './scenes/DungeonScene.js';
 
 // Create a new Phaser game instance
 
@@ -19,7 +18,7 @@ const config = {
     },
   },
 
-  scene: [Preloader, DungeonScene],
+  scene: [DungeonScene],
   scale: {
     zoom: 2.25
   }
