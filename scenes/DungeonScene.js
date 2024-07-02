@@ -109,6 +109,7 @@ export default class Game extends Phaser.Scene {
         enemy.body.setSize(enemy.width * 0.9, enemy.height * 0.6);
       });
     }
+    this.physics.add.collider(this.faune, this.enemysGroup, this.handlePlayerEnemyCollision, null, this);
     this.physics.add.collider(this.enemysGroup, this.LayerArriba);
   }
 
@@ -259,7 +260,11 @@ export default class Game extends Phaser.Scene {
   }
 
   handlePlayerEnemyCollision(player, enemy) {
-    console.log("¡Ouch! ¡Te atacaron!");
+    this.faune.anims.play('faune-hit', true);
+    this.faune.body.enable = false;
+    this.time.delayedCall(3000, () => {
+      this.scene.start('MenuScene');
+    });
   }
 
   createAnimations() {
@@ -303,8 +308,18 @@ export default class Game extends Phaser.Scene {
       key: "faune-hit",
       frames: this.anims.generateFrameNames("faune", { start: 1, end: 4, prefix: "sprites/faint/faint-", suffix: ".png"}),
       frameRate: 10
-    })
+    });
 
-    this.faune.anims.play("faune-idle-down");
+    this.faune.play("faune-idle-down");
   }
+
 }
+
+    
+
+
+
+
+
+
+
