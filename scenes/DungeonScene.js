@@ -214,7 +214,7 @@ export default class Game extends Phaser.Scene {
   }
 
   updateHitboxPosition() {
-    const offsetX = 32;
+    const offsetX = 16;
     const offsetY = 0;
 
     switch (this.faune.anims.currentAnim.key) {

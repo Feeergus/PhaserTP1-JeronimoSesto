@@ -1,3 +1,4 @@
+import MenuScene from './scenes/MenuScene.js';
 import DungeonScene from './scenes/DungeonScene.js';
 
 // Create a new Phaser game instance
@@ -9,7 +10,7 @@ const config = {
   backgroundColor: "00000",
   parent: "game-container",
   pixelArt: true,
-  scene: DungeonScene,
+  scene: [MenuScene, DungeonScene],
   physics: {
     default: "arcade",
     arcade: {
@@ -17,8 +18,6 @@ const config = {
         debug: true
     },
   },
-
-  scene: [DungeonScene],
   scale: {
     zoom: 2.25
   }
