@@ -5,7 +5,6 @@ export default class Game extends Phaser.Scene {
     this.score = 0;
     this.shaderTime = 0;
     this.purpleLightShader = null;
-
     this.attackHitbox = null;
     this.attackKey = null;
   }
@@ -33,7 +32,7 @@ export default class Game extends Phaser.Scene {
 
     const map = this.make.tilemap({ key: "Mazmorra" });
     const tiles = map.addTilesetImage("tileset(pruebaFinal)", "tiles");
-    
+
     const LayerAbajo = map.createLayer("Piso", tiles, 0, 0);
     const LayerArriba = map.createLayer("Paredes", tiles, 0, 0);
     LayerArriba.setCollisionByProperty({ colliders: true });
@@ -52,14 +51,25 @@ export default class Game extends Phaser.Scene {
       this.purpleLightShader = purpleLight;
     });
 
-    this.lizard = this.physics.add.sprite(250, 128, "lizard", "lizard_m_idle_anim_f0.png");
-    this.lizard.body.setSize(this.lizard.width * 0.9, this.lizard.height * 0.6);
-    this.physics.add.collider(this.lizard, LayerArriba);
-
     this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
     this.physics.add.collider(this.faune, LayerArriba);
     this.cameras.main.startFollow(this.faune, true);
+
+    this.enemysGroup = this.physics.add.group();
+
+    // Crear enemigos desde el layer de objetos 'enemys'
+    const enemysLayer = map.getObjectLayer('enemys');
+    if (enemysLayer) {
+        const enemysObjects = enemysLayer.objects;
+        enemysObjects.forEach(enemyObj => {
+            const enemy = this.enemysGroup.create(enemyObj.x, enemyObj.y, "lizard", "lizard_m_idle_anim_f0.png");
+            enemy.body.setSize(enemy.width * 0.9, enemy.height * 0.6);
+        });
+    }
+
+    this.physics.add.collider(this.enemysGroup, LayerArriba);
+    this.physics.add.collider(this.faune, this.enemysGroup, this.handlePlayerEnemyCollision, null, this);
 
     this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '20px', fill: '#fff' });
     this.scoreText.setScrollFactor(0);
@@ -156,12 +166,13 @@ export default class Game extends Phaser.Scene {
 
   seguimiento() {
     const player = this.faune;
-    const enemy = this.lizard;
-  
-    if (enemy && enemy.body) {
-      const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
-      this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
-  }
+
+    this.enemysGroup.children.iterate(enemy => {
+      if (enemy.active) { // Verificar si el enemigo está activo
+        const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
+        this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
+      }
+    });
   }
 
   update() {
@@ -200,6 +211,13 @@ export default class Game extends Phaser.Scene {
       this.purpleLightShader.setUniform('time', this.shaderTime);
     }
 
+    if (this.attackKey.isDown) {
+      this.attackHitbox.setActive(true).setVisible(true);
+      this.physics.world.overlap(this.attackHitbox, this.enemysGroup, this.handleEnemyCollision, null, this);
+    } else {
+      this.attackHitbox.setActive(false).setVisible(false);
+    }
+
     if (this.attackHitbox.visible) {
       this.updateHitboxPosition();
     }
@@ -217,7 +235,7 @@ export default class Game extends Phaser.Scene {
     // Colocar la hitbox inicialmente en la posición correcta
     this.updateHitboxPosition();
   }
-  
+
   updateHitboxPosition() {
     const offsetX = 32; // Ajusta el desplazamiento en X según el tamaño del jugador y la hitbox
     const offsetY = 0; // Ajusta el desplazamiento en Y si es necesario
@@ -244,16 +262,14 @@ export default class Game extends Phaser.Scene {
             }
             break;
     }
-    if(this.attackKey.isDown){
-      this.physics.overlap(this.attackHitbox, this.lizard, this.handleEnemyCollision, null, this);
-    }
-    
   }
 
   handleEnemyCollision(hitbox, enemy) {
     // Aquí se destruye el enemigo
     enemy.destroy();
+  }
 
-    // También puedes incrementar la puntuación u otras acciones aquí si lo necesitas
+  handlePlayerEnemyCollision(player, enemy) {
+    console.log("hay que daño");
   }
 }
