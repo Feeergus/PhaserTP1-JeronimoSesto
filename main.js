@@ -11,7 +11,7 @@ const config = {
   backgroundColor: "00000",
   parent: "game-container",
   pixelArt: true,
-  scene: [MenuScene, DungeonScene],
+  scene: [MenuScene, DungeonScene, Derrota],
   physics: {
     default: "arcade",
     arcade: {

@@ -18,6 +18,7 @@ export default class Game extends Phaser.Scene {
     this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
     this.load.atlas("coins", "coins/spritesheet.png", "coins/spritesheet.json");
+    this.load.image("espada", "character/espada1.png");
     this.load.glsl("purpleLightShader", "shaders/purpleLight.glsl");
     this.cursors = this.input.keyboard.createCursorKeys();
   }
@@ -220,8 +221,26 @@ export default class Game extends Phaser.Scene {
 
   activateHitbox() {
     this.attackHitbox.setVisible(true);
-    // Colocar la hitbox inicialmente en la posición correcta
     this.updateHitboxPosition();
+  
+    switch (this.faune.anims.currentAnim.key) {
+      case 'faune-run-up':
+      case 'faune-idle-up':
+        this.attackHitbox.anims.play('hitbox-up', true);
+        break;
+      case 'faune-run-down':
+      case 'faune-idle-down':
+        this.attackHitbox.anims.play('hitbox-down', true);
+        break;
+      default:
+        this.attackHitbox.anims.play('hitbox-side', true);
+        break;
+    }
+  
+    // Desactivar la hitbox después de un breve período de tiempo
+    this.time.delayedCall(200, () => {
+      this.attackHitbox.setVisible(false);
+    });
   }
 
   deactivateHitbox() {
@@ -256,7 +275,37 @@ export default class Game extends Phaser.Scene {
   }
 
   handleEnemyCollision(hitbox, enemy) {
-    enemy.destroy();
+
+
+    if(this.attackKey.isDown){
+      // Crear una animación de espada en la posición del jugador
+      const swordAnim = this.add.sprite(this.faune.x, this.faune.y, 'espada');
+    
+      // Reproducir la animación de la hitbox correspondiente
+      switch (this.faune.anims.currentAnim.key) {
+          case 'faune-run-up':
+          case 'faune-idle-up':
+            swordAnim.play('hitbox-up', true);
+            enemy.destroy();
+            break;
+          case 'faune-run-down':
+          case 'faune-idle-down':
+            swordAnim.play('hitbox-down', true);
+            enemy.destroy();
+            break;
+          default:
+            swordAnim.play('hitbox-side', true);
+            enemy.destroy();
+            break;
+      }
+    
+      // Destruir la animación después de un tiempo
+      this.time.delayedCall(200, () => {
+        swordAnim.destroy();
+      });
+      
+    }
+    
   }
 
   handlePlayerEnemyCollision(player, enemy) {
@@ -309,6 +358,8 @@ export default class Game extends Phaser.Scene {
       frames: this.anims.generateFrameNames("faune", { start: 1, end: 4, prefix: "sprites/faint/faint-", suffix: ".png"}),
       frameRate: 10
     });
+
+    
 
     this.faune.play("faune-idle-down");
   }
