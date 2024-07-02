@@ -30,6 +30,7 @@ export default class Game extends Phaser.Scene {
     this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
     this.attackKey.on('down', () => {
       this.activateHitbox();
+      this.time.delayedCall(200, () => { this.deactivateHitbox(); }, [], this);
     });
 
     const map = this.make.tilemap({ key: "Mazmorra" });
@@ -138,12 +139,21 @@ export default class Game extends Phaser.Scene {
       player.setPosition(targetZone.pixelX, targetZone.pixelY);
 
       // Regenerar enemigos y monedas
-      this.enemysGroup.clear(true, true);
-      this.createEnemies(this.make.tilemap({ key: "Mazmorra" }));
-
-      this.coinsGroup.clear(true, true);
-      this.createCoins(this.make.tilemap({ key: "Mazmorra" }));
+      this.resetEnemies();
+      this.resetCoins();
     }
+  }
+
+  resetEnemies() {
+    this.enemysGroup.clear(true, true);
+    const map = this.make.tilemap({ key: "Mazmorra" });
+    this.createEnemies(map);
+  }
+
+  resetCoins() {
+    this.coinsGroup.clear(true, true);
+    const map = this.make.tilemap({ key: "Mazmorra" });
+    this.createCoins(map);
   }
 
   seguimiento() {
@@ -196,7 +206,7 @@ export default class Game extends Phaser.Scene {
     // Actualizar la posición de la hitbox para que siga al jugador
     this.updateHitboxPosition();
 
-    if (this.attackKey.isDown && this.attackHitbox.visible) {
+    if (this.attackHitbox.visible) {
       this.physics.world.overlap(this.attackHitbox, this.enemysGroup, this.handleEnemyCollision, null, this);
     }
   }
@@ -211,6 +221,10 @@ export default class Game extends Phaser.Scene {
     this.attackHitbox.setVisible(true);
     // Colocar la hitbox inicialmente en la posición correcta
     this.updateHitboxPosition();
+  }
+
+  deactivateHitbox() {
+    this.attackHitbox.setVisible(false);
   }
 
   updateHitboxPosition() {
@@ -284,6 +298,12 @@ export default class Game extends Phaser.Scene {
       repeat: -1,
       frameRate: 15
     });
+
+    this.anims.create({
+      key: "faune-hit",
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 4, prefix: "sprites/faint/faint-", suffix: ".png"}),
+      frameRate: 10
+    })
 
     this.faune.anims.play("faune-idle-down");
   }
