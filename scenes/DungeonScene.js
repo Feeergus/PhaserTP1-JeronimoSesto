@@ -263,7 +263,7 @@ export default class Game extends Phaser.Scene {
     this.faune.anims.play('faune-hit', true);
     this.faune.body.enable = false;
     this.time.delayedCall(3000, () => {
-      this.scene.start('MenuScene');
+      this.scene.start('gameover');
     });
   }
 

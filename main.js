@@ -1,5 +1,6 @@
 import MenuScene from './scenes/MenuScene.js';
 import DungeonScene from './scenes/DungeonScene.js';
+import Derrota from './scenes/Derrota.js';
 
 // Create a new Phaser game instance
 
