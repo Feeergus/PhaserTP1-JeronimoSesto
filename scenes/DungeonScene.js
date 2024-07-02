@@ -5,6 +5,9 @@ export default class Game extends Phaser.Scene {
     this.score = 0;
     this.shaderTime = 0;
     this.purpleLightShader = null;
+
+    this.attackHitbox = null;
+    this.attackKey = null;
   }
 
   preload() {
@@ -19,6 +22,15 @@ export default class Game extends Phaser.Scene {
   }
 
   create() {
+    this.attackHitbox = this.add.rectangle(0, 0, 16, 16); // Ajusta el tamaño según necesites
+    this.attackHitbox.setVisible(false);
+    this.physics.world.enable(this.attackHitbox);
+
+    this.attackKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+    this.attackKey.on('down', () => {
+      this.activateHitbox();
+    });
+
     const map = this.make.tilemap({ key: "Mazmorra" });
     const tiles = map.addTilesetImage("tileset(pruebaFinal)", "tiles");
     
@@ -146,8 +158,10 @@ export default class Game extends Phaser.Scene {
     const player = this.faune;
     const enemy = this.lizard;
   
-    const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
-    this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
+    if (enemy && enemy.body) {
+      const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
+      this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
+  }
   }
 
   update() {
@@ -185,6 +199,10 @@ export default class Game extends Phaser.Scene {
       this.shaderTime += this.game.loop.delta;
       this.purpleLightShader.setUniform('time', this.shaderTime);
     }
+
+    if (this.attackHitbox.visible) {
+      this.updateHitboxPosition();
+    }
   }
 
   collectCoin(player, coin) {
@@ -193,4 +211,49 @@ export default class Game extends Phaser.Scene {
     this.scoreText.setText(`Puntuacion: ${this.score}`);
   }
 
+  activateHitbox() {
+    // Activar la hitbox cuando se presiona la tecla A
+    this.attackHitbox.setVisible(true);
+    // Colocar la hitbox inicialmente en la posición correcta
+    this.updateHitboxPosition();
+  }
+  
+  updateHitboxPosition() {
+    const offsetX = 32; // Ajusta el desplazamiento en X según el tamaño del jugador y la hitbox
+    const offsetY = 0; // Ajusta el desplazamiento en Y si es necesario
+
+    // Determina la posición de la hitbox según la dirección del jugador
+    switch (this.faune.anims.currentAnim.key) {
+        case 'faune-run-up':
+        case 'faune-idle-up':
+            this.attackHitbox.setPosition(this.faune.x, this.faune.y - offsetX);
+            this.attackHitbox.setAngle(-90);
+            break;
+        case 'faune-run-down':
+        case 'faune-idle-down':
+            this.attackHitbox.setPosition(this.faune.x, this.faune.y + offsetX);
+            this.attackHitbox.setAngle(90);
+            break;
+        default: // Para izquierda y derecha
+            if (this.faune.scaleX === 1) { // Jugador mirando a la derecha
+                this.attackHitbox.setPosition(this.faune.x + offsetX, this.faune.y + offsetY);
+                this.attackHitbox.setAngle(0);
+            } else { // Jugador mirando a la izquierda
+                this.attackHitbox.setPosition(this.faune.x - offsetX, this.faune.y + offsetY);
+                this.attackHitbox.setAngle(180);
+            }
+            break;
+    }
+    if(this.attackKey.isDown){
+      this.physics.overlap(this.attackHitbox, this.lizard, this.handleEnemyCollision, null, this);
+    }
+    
+  }
+
+  handleEnemyCollision(hitbox, enemy) {
+    // Aquí se destruye el enemigo
+    enemy.destroy();
+
+    // También puedes incrementar la puntuación u otras acciones aquí si lo necesitas
+  }
 }
