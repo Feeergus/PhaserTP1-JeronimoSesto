@@ -15,7 +15,7 @@ export default class Game extends Phaser.Scene {
   preload() {
     this.load.tilemapTiledJSON("Mazmorra", "tiles/8bits.json");
     this.load.image("tiles", "tiles/tileset(pruebaFinal).png");
-    this.load.atlas("faune", "character/Atlas.png", "character/Atlas.json");
+    this.load.atlas("faune", "character/spritesheet (4).png", "character/spritesheet (3).json");
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
     this.load.atlas("coins", "coins/spritesheet.png", "coins/spritesheet.json");
     this.load.image("espada", "character/espada1.png");
@@ -55,8 +55,9 @@ export default class Game extends Phaser.Scene {
       this.purpleLightShader = purpleLight;
     });
 
-    this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
-    this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
+    this.faune = this.physics.add.sprite(108, 128, "faune", "knight-idle.png");
+    this.faune.body.setSize(this.faune.width * 0.4, this.faune.height * 0.6);
+    this.faune.setScale(0.7)
     this.physics.add.collider(this.faune, this.LayerArriba);
     this.cameras.main.startFollow(this.faune, true);
 
@@ -177,14 +178,12 @@ export default class Game extends Phaser.Scene {
 
     if (this.cursors.left?.isDown) {
       this.faune.setVelocity(-speed, 0);
-      this.faune.anims.play("faune-run-side", true);
-      this.faune.scaleX = -1;
-      this.faune.body.offset.x = 24;
+      this.faune.anims.play("faune-run-sideR", true);
+      
     } else if (this.cursors.right?.isDown) {
       this.faune.setVelocity(speed, 0);
       this.faune.anims.play("faune-run-side", true);
-      this.faune.scaleX = 1;
-      this.faune.body.offset.x = 8;
+      
     } else if (this.cursors.up?.isDown) {
       this.faune.setVelocity(0, -speed);
       this.faune.anims.play("faune-run-up", true);
@@ -263,12 +262,12 @@ export default class Game extends Phaser.Scene {
         this.attackHitbox.setAngle(90);
         break;
       default:
-        if (this.faune.scaleX === 1) {
+        if (this.faune.anims.currentAnim.key === "faune-run-side") {
           this.attackHitbox.setPosition(this.faune.x + offsetX, this.faune.y + offsetY);
           this.attackHitbox.setAngle(0);
         } else {
           this.attackHitbox.setPosition(this.faune.x - offsetX, this.faune.y + offsetY);
-          this.attackHitbox.setAngle(180);
+          this.attackHitbox.setAngle(0);
         }
         break;
     }
@@ -319,45 +318,58 @@ export default class Game extends Phaser.Scene {
   createAnimations() {
     this.anims.create({
       key: "faune-idle-down",
-      frames: [{ key: "faune", frame: "sprites/walk-down/walk-down-3.png"}]
+      frames: [{ key: "faune", frame: "knight-idle.png"}]
     });
 
     this.anims.create({
       key: "faune-idle-up",
-      frames: [{ key: "faune", frame: "sprites/walk-up/walk-up-3.png"}]
+      frames: [{ key: "faune", frame: "knight-run-up-1.png"}]
     });
 
     this.anims.create({
       key: "faune-idle-side",
-      frames: [{ key: "faune", frame: "sprites/walk-side/walk-side-3.png"}]
+      frames: [{ key: "faune", frame: "knight-run-side-1.png"}]
+    });
+
+    this.anims.create({
+      key: "faune-idle-sideR",
+      frames: [{ key: "faune", frame: "knight-run-sideR-1.png"}]
+    });
+
+    this.anims.create({
+      key: "faune-hit",
+      frames: [{ key: "faune", frame: "knight-hit.png" }]
     });
 
     this.anims.create({
       key: "faune-run-down",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-down/run-down-", suffix: ".png"}),
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 6, prefix: "knight-run-below-", suffix: ".png"}),
       repeat: -1,
       frameRate: 15
     });
 
     this.anims.create({
       key: "faune-run-up",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-up/run-up-", suffix: ".png"}),
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 6, prefix: "knight-run-up-", suffix: ".png"}),
       repeat: -1,
       frameRate: 15
     });
 
     this.anims.create({
       key: "faune-run-side",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-side/run-side-", suffix: ".png"}),
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 6, prefix: "knight-run-side-", suffix: ".png"}),
       repeat: -1,
       frameRate: 15
     });
 
     this.anims.create({
-      key: "faune-hit",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 4, prefix: "sprites/faint/faint-", suffix: ".png"}),
-      frameRate: 10
+      key: "faune-run-sideR",
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 6, prefix: "knight-run-sideR-", suffix: ".png"}),
+      repeat: -1,
+      frameRate: 15
     });
+
+    
 
     
 
