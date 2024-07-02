@@ -7,6 +7,9 @@ export default class Game extends Phaser.Scene {
     this.purpleLightShader = null;
     this.attackHitbox = null;
     this.attackKey = null;
+    this.coinsGroup = null;
+    this.enemysGroup = null;
+    this.LayerArriba = null;
   }
 
   preload() {
@@ -16,12 +19,11 @@ export default class Game extends Phaser.Scene {
     this.load.atlas("lizard", "enemy/lizard.png", "enemy/lizard.json");
     this.load.atlas("coins", "coins/spritesheet.png", "coins/spritesheet.json");
     this.load.glsl("purpleLightShader", "shaders/purpleLight.glsl");
-    //cursores para el movimiento
     this.cursors = this.input.keyboard.createCursorKeys();
   }
 
   create() {
-    this.attackHitbox = this.add.rectangle(0, 0, 16, 16); // Ajusta el tamaño según necesites
+    this.attackHitbox = this.add.rectangle(0, 0, 16, 16);
     this.attackHitbox.setVisible(false);
     this.physics.world.enable(this.attackHitbox);
 
@@ -34,11 +36,11 @@ export default class Game extends Phaser.Scene {
     const tiles = map.addTilesetImage("tileset(pruebaFinal)", "tiles");
 
     const LayerAbajo = map.createLayer("Piso", tiles, 0, 0);
-    const LayerArriba = map.createLayer("Paredes", tiles, 0, 0);
-    LayerArriba.setCollisionByProperty({ colliders: true });
+    this.LayerArriba = map.createLayer("Paredes", tiles, 0, 0);
+    this.LayerArriba.setCollisionByProperty({ colliders: true });
 
-    const zonaTPTiles = map.filterTiles(tile => tile.properties.zonaTP);
-    zonaTPTiles.forEach(tile => {
+    this.zonaTPTiles = map.filterTiles(tile => tile.properties.zonaTP);
+    this.zonaTPTiles.forEach(tile => {
       const { x, y, width, height } = tile.getCenter();
       const purpleLight = this.add.shader("purpleLightShader", x, y, width, height);
       purpleLight.setOrigin(0.5, 0.5);
@@ -53,64 +55,17 @@ export default class Game extends Phaser.Scene {
 
     this.faune = this.physics.add.sprite(108, 128, "faune", "sprites/run-down/run-down-6.png");
     this.faune.body.setSize(this.faune.width * 0.5, this.faune.height * 0.8);
-    this.physics.add.collider(this.faune, LayerArriba);
+    this.physics.add.collider(this.faune, this.LayerArriba);
     this.cameras.main.startFollow(this.faune, true);
 
-    this.enemysGroup = this.physics.add.group();
-
-    // Crear enemigos desde el layer de objetos 'enemys'
-    const enemysLayer = map.getObjectLayer('enemys');
-    if (enemysLayer) {
-        const enemysObjects = enemysLayer.objects;
-        enemysObjects.forEach(enemyObj => {
-            const enemy = this.enemysGroup.create(enemyObj.x, enemyObj.y, "lizard", "lizard_m_idle_anim_f0.png");
-            enemy.body.setSize(enemy.width * 0.9, enemy.height * 0.6);
-        });
-    }
-
-    this.physics.add.collider(this.enemysGroup, LayerArriba);
+    this.createEnemies(map);
+    this.physics.add.collider(this.enemysGroup, this.LayerArriba);
     this.physics.add.collider(this.faune, this.enemysGroup, this.handlePlayerEnemyCollision, null, this);
 
     this.scoreText = this.add.text(16, 16, 'Puntuación: 0', { fontSize: '20px', fill: '#fff' });
     this.scoreText.setScrollFactor(0);
 
-    this.anims.create({
-      key: "faune-idle-down",
-      frames: [{ key: "faune", frame: "sprites/walk-down/walk-down-3.png"}]
-    });
-
-    this.anims.create({
-      key: "faune-idle-up",
-      frames: [{ key: "faune", frame: "sprites/walk-up/walk-up-3.png"}]
-    });
-
-    this.anims.create({
-      key: "faune-idle-side",
-      frames: [{ key: "faune", frame: "sprites/walk-side/walk-side-3.png"}]
-    });
-
-    this.anims.create({
-      key: "faune-run-down",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-down/run-down-", suffix: ".png"}),
-      repeat: -1,
-      frameRate: 15
-    });
-
-    this.anims.create({
-      key: "faune-run-up",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-up/run-up-", suffix: ".png"}),
-      repeat: -1,
-      frameRate: 15
-    });
-
-    this.anims.create({
-      key: "faune-run-side",
-      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-side/run-side-", suffix: ".png"}),
-      repeat: -1,
-      frameRate: 15
-    });
-
-    this.faune.anims.play("faune-idle-down");
+    this.createAnimations();
 
     this.time.addEvent({
       delay: 1000,
@@ -119,23 +74,7 @@ export default class Game extends Phaser.Scene {
       callbackScope: this
     });
 
-    const coins = map.getObjectLayer("elements")?.objects;
-    this.coinsGroup = this.physics.add.group();
-    coins.forEach(coin => {
-      const newCoin = this.coinsGroup.create(coin.x, coin.y, "coins", 0);
-    });
-
-    this.physics.add.collider(this.faune, this.coinsGroup, this.collectCoin, null, this);
-
-    this.anims.create({
-      key: "money",
-      frames: this.anims.generateFrameNames("coins", { start: 0, end: 5, prefix: "pixil-frame-", suffix: ".png"}),
-      repeat: -1
-    });
-
-    this.coinsGroup.children.iterate(coin => {
-      coin.anims.play("money", true);
-    });
+    this.createCoins(map);
 
     this.teleportZones = [];
     this.appearZones = [];
@@ -154,6 +93,42 @@ export default class Game extends Phaser.Scene {
     });
 
     this.physics.add.overlap(this.faune, LayerAbajo, this.handleTeleport, null, this);
+
+    // Ajustar la posición inicial de la hitbox cerca del jugador
+    this.updateHitboxPosition();
+  }
+
+  createEnemies(map) {
+    this.enemysGroup = this.physics.add.group();
+    const enemysLayer = map.getObjectLayer('enemys');
+    if (enemysLayer) {
+      const enemysObjects = enemysLayer.objects;
+      enemysObjects.forEach(enemyObj => {
+        const enemy = this.enemysGroup.create(enemyObj.x, enemyObj.y, "lizard", "lizard_m_idle_anim_f0.png");
+        enemy.body.setSize(enemy.width * 0.9, enemy.height * 0.6);
+      });
+    }
+    this.physics.add.collider(this.enemysGroup, this.LayerArriba);
+  }
+
+  createCoins(map) {
+    const coins = map.getObjectLayer("elements")?.objects;
+    this.coinsGroup = this.physics.add.group();
+    coins.forEach(coin => {
+      const newCoin = this.coinsGroup.create(coin.x, coin.y, "coins", 0);
+    });
+
+    this.physics.add.collider(this.faune, this.coinsGroup, this.collectCoin, null, this);
+
+    this.anims.create({
+      key: "money",
+      frames: this.anims.generateFrameNames("coins", { start: 0, end: 5, prefix: "pixil-frame-", suffix: ".png"}),
+      repeat: -1
+    });
+
+    this.coinsGroup.children.iterate(coin => {
+      coin.anims.play("money", true);
+    });
   }
 
   handleTeleport(player, tile) {
@@ -161,6 +136,13 @@ export default class Game extends Phaser.Scene {
       const randomIndex = Phaser.Math.Between(0, this.appearZones.length - 1);
       const targetZone = this.appearZones[randomIndex];
       player.setPosition(targetZone.pixelX, targetZone.pixelY);
+
+      // Regenerar enemigos y monedas
+      this.enemysGroup.clear(true, true);
+      this.createEnemies(this.make.tilemap({ key: "Mazmorra" }));
+
+      this.coinsGroup.clear(true, true);
+      this.createCoins(this.make.tilemap({ key: "Mazmorra" }));
     }
   }
 
@@ -168,7 +150,7 @@ export default class Game extends Phaser.Scene {
     const player = this.faune;
 
     this.enemysGroup.children.iterate(enemy => {
-      if (enemy.active) { // Verificar si el enemigo está activo
+      if (enemy.active) {
         const angleToPlayer = Phaser.Math.Angle.Between(enemy.x, enemy.y, player.x, player.y);
         this.physics.velocityFromRotation(angleToPlayer, 50, enemy.body.velocity);
       }
@@ -211,15 +193,11 @@ export default class Game extends Phaser.Scene {
       this.purpleLightShader.setUniform('time', this.shaderTime);
     }
 
-    if (this.attackKey.isDown) {
-      this.attackHitbox.setActive(true).setVisible(true);
-      this.physics.world.overlap(this.attackHitbox, this.enemysGroup, this.handleEnemyCollision, null, this);
-    } else {
-      this.attackHitbox.setActive(false).setVisible(false);
-    }
+    // Actualizar la posición de la hitbox para que siga al jugador
+    this.updateHitboxPosition();
 
-    if (this.attackHitbox.visible) {
-      this.updateHitboxPosition();
+    if (this.attackKey.isDown && this.attackHitbox.visible) {
+      this.physics.world.overlap(this.attackHitbox, this.enemysGroup, this.handleEnemyCollision, null, this);
     }
   }
 
@@ -230,46 +208,83 @@ export default class Game extends Phaser.Scene {
   }
 
   activateHitbox() {
-    // Activar la hitbox cuando se presiona la tecla A
     this.attackHitbox.setVisible(true);
     // Colocar la hitbox inicialmente en la posición correcta
     this.updateHitboxPosition();
   }
 
   updateHitboxPosition() {
-    const offsetX = 32; // Ajusta el desplazamiento en X según el tamaño del jugador y la hitbox
-    const offsetY = 0; // Ajusta el desplazamiento en Y si es necesario
+    const offsetX = 32;
+    const offsetY = 0;
 
-    // Determina la posición de la hitbox según la dirección del jugador
     switch (this.faune.anims.currentAnim.key) {
-        case 'faune-run-up':
-        case 'faune-idle-up':
-            this.attackHitbox.setPosition(this.faune.x, this.faune.y - offsetX);
-            this.attackHitbox.setAngle(-90);
-            break;
-        case 'faune-run-down':
-        case 'faune-idle-down':
-            this.attackHitbox.setPosition(this.faune.x, this.faune.y + offsetX);
-            this.attackHitbox.setAngle(90);
-            break;
-        default: // Para izquierda y derecha
-            if (this.faune.scaleX === 1) { // Jugador mirando a la derecha
-                this.attackHitbox.setPosition(this.faune.x + offsetX, this.faune.y + offsetY);
-                this.attackHitbox.setAngle(0);
-            } else { // Jugador mirando a la izquierda
-                this.attackHitbox.setPosition(this.faune.x - offsetX, this.faune.y + offsetY);
-                this.attackHitbox.setAngle(180);
-            }
-            break;
+      case 'faune-run-up':
+      case 'faune-idle-up':
+        this.attackHitbox.setPosition(this.faune.x, this.faune.y - offsetX);
+        this.attackHitbox.setAngle(-90);
+        break;
+      case 'faune-run-down':
+      case 'faune-idle-down':
+        this.attackHitbox.setPosition(this.faune.x, this.faune.y + offsetX);
+        this.attackHitbox.setAngle(90);
+        break;
+      default:
+        if (this.faune.scaleX === 1) {
+          this.attackHitbox.setPosition(this.faune.x + offsetX, this.faune.y + offsetY);
+          this.attackHitbox.setAngle(0);
+        } else {
+          this.attackHitbox.setPosition(this.faune.x - offsetX, this.faune.y + offsetY);
+          this.attackHitbox.setAngle(180);
+        }
+        break;
     }
   }
 
   handleEnemyCollision(hitbox, enemy) {
-    // Aquí se destruye el enemigo
     enemy.destroy();
   }
 
   handlePlayerEnemyCollision(player, enemy) {
-    console.log("hay que daño");
+    console.log("¡Ouch! ¡Te atacaron!");
+  }
+
+  createAnimations() {
+    this.anims.create({
+      key: "faune-idle-down",
+      frames: [{ key: "faune", frame: "sprites/walk-down/walk-down-3.png"}]
+    });
+
+    this.anims.create({
+      key: "faune-idle-up",
+      frames: [{ key: "faune", frame: "sprites/walk-up/walk-up-3.png"}]
+    });
+
+    this.anims.create({
+      key: "faune-idle-side",
+      frames: [{ key: "faune", frame: "sprites/walk-side/walk-side-3.png"}]
+    });
+
+    this.anims.create({
+      key: "faune-run-down",
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-down/run-down-", suffix: ".png"}),
+      repeat: -1,
+      frameRate: 15
+    });
+
+    this.anims.create({
+      key: "faune-run-up",
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-up/run-up-", suffix: ".png"}),
+      repeat: -1,
+      frameRate: 15
+    });
+
+    this.anims.create({
+      key: "faune-run-side",
+      frames: this.anims.generateFrameNames("faune", { start: 1, end: 8, prefix: "sprites/run-side/run-side-", suffix: ".png"}),
+      repeat: -1,
+      frameRate: 15
+    });
+
+    this.faune.anims.play("faune-idle-down");
   }
 }
